@@ -1,0 +1,7 @@
+node_modules/
+.env
+dist/
+.DS_Store
+*.log
+client/public/models/*.bin
+client/public/models/*-shard*

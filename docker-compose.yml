@@ -1,0 +1,28 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: proxima
+      POSTGRES_USER: proxima
+      POSTGRES_PASSWORD: proxima_secret
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  livekit:
+    image: livekit/livekit-server:latest
+    ports:
+      - "7880:7880"
+      - "7881:7881"
+      - "7882:7882/udp"
+    volumes:
+      - ./livekit.yaml:/livekit.yaml
+    command: --config /livekit.yaml
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

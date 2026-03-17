@@ -1,0 +1,100 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Institution {
+  id         Int      @id @default(autoincrement())
+  name       String
+  slug       String   @unique
+  adminEmail String
+  plan       String   @default("free")
+  createdAt  DateTime @default(now())
+
+  users        User[]
+  classes      Class[]
+}
+
+model User {
+  id            Int          @id @default(autoincrement())
+  institutionId Int?
+  name          String
+  email         String
+  password      String
+  role          String
+  username      String?
+  createdAt     DateTime     @default(now())
+
+  institution   Institution? @relation(fields: [institutionId], references: [id])
+  taughtClasses Class[]      @relation("TeacherClasses")
+  enrollments   Enrollment[]
+  feedItems     FeedItem[]
+  sessions      LiveSession[]
+
+  @@unique([institutionId, email])
+  @@unique([institutionId, username])
+}
+
+model Class {
+  id            Int      @id @default(autoincrement())
+  institutionId Int
+  teacherId     Int
+  name          String
+  subject       String?
+  description   String?
+  joinKey       String   @unique
+  createdAt     DateTime @default(now())
+
+  institution   Institution  @relation(fields: [institutionId], references: [id])
+  teacher       User         @relation("TeacherClasses", fields: [teacherId], references: [id])
+  enrollments   Enrollment[]
+  feedItems     FeedItem[]
+  sessions      LiveSession[]
+}
+
+model Enrollment {
+  id        Int      @id @default(autoincrement())
+  classId   Int
+  studentId Int
+  joinedAt  DateTime @default(now())
+
+  class     Class    @relation(fields: [classId], references: [id])
+  student   User     @relation(fields: [studentId], references: [id])
+
+  @@unique([classId, studentId])
+}
+
+model FeedItem {
+  id        Int      @id @default(autoincrement())
+  classId   Int
+  authorId  Int
+  type      String
+  title     String?
+  body      String?
+  fileUrl   String?
+  fileName  String?
+  createdAt DateTime @default(now())
+
+  class     Class    @relation(fields: [classId], references: [id])
+  author    User     @relation(fields: [authorId], references: [id])
+}
+
+model LiveSession {
+  id           Int       @id @default(autoincrement())
+  classId      Int
+  teacherId    Int
+  title        String
+  scheduledAt  DateTime?
+  startedAt    DateTime?
+  endedAt      DateTime?
+  livekitRoom  String?
+  status       String    @default("scheduled")
+  createdAt    DateTime  @default(now())
+
+  class        Class     @relation(fields: [classId], references: [id])
+  teacher      User      @relation(fields: [teacherId], references: [id])
+}

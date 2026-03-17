@@ -1,0 +1,32 @@
+~/Downloads/googlemeetbutbetter/..
+  .git
+  ★ frontend
+  ★ server
+    ★ data
+      󰈔 ★ proxima.db
+      󰈔 ★ proxima.db-shm
+      󰈔 ★ proxima.db-wal
+    ★ prisma
+    ★ src
+      ★ database
+      ★ db
+      ★ middleware
+      ★ routes
+      ★ socket
+      ★ store
+    uploads
+    󰈔 ★ .env.example
+    󰡨 ★ Dockerfile
+    󰘦 ★ package-lock.json
+    󰘦 ★ package.json
+    󰌞 ★ server.js
+    󰌞 ★ test-auth.js
+     ★ test.sh
+  󰊢 ★ .gitignore
+  󰍔 ★ changelog.md
+   ★ docker-compose.yml
+  󰍔 ★ implement.md
+   ★ livekit.yaml
+  󰘦 ★ package-lock.json
+   ★ README.md
+  󰍔 ★ test.md
