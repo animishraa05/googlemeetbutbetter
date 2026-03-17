@@ -34,6 +34,7 @@ function StudentRoomContent() {
   const [reactionFlash, setReactionFlash] = useState<string | null>(null);
   const [videoEnabled, setVideoEnabled] = useState(false);
   const [teacherDrawing, setTeacherDrawing] = useState(false);
+  const [attentionScore, setAttentionScore] = useState(100);
   const sketchCanvasRef = useRef<ReactSketchCanvasRef>(null);
 
   const room = currentRoom;
@@ -43,7 +44,7 @@ function StudentRoomContent() {
   useDataChannel('proxima_events', (msg: any) => {
     try {
       const text = new TextDecoder().decode(msg.data || msg.payload || msg);
-      const ev: LiveKitEvent = JSON.parse(text);
+      const ev: LiveKitEvent & { targetId?: string } = JSON.parse(text);
       if (ev.type === 'whiteboard_state') {
         setTeacherDrawing(!!ev.isDrawing);
       } else if (ev.type === 'whiteboard_data' && ev.paths) {
@@ -54,11 +55,67 @@ function StudentRoomContent() {
         }
       } else if (ev.type === 'clear_whiteboard') {
         sketchCanvasRef.current?.clearCanvas();
+      } else if (ev.type === 'kick' && ev.targetId === localParticipant?.identity) {
+        alert('You have been removed from the session by the teacher.');
+        navigate('/dashboard');
       }
     } catch (e) {
       console.error(e);
     }
   });
+
+  // Attention Score Calculation Logic
+  useEffect(() => {
+    let focusTimer: any;
+    let score = 100;
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        // Decrease score rapidly while hidden
+        focusTimer = setInterval(() => {
+          score = Math.max(0, score - 5);
+          setAttentionScore(score);
+        }, 1000);
+      } else {
+        // Stop decreasing, slowly regenerate
+        clearInterval(focusTimer);
+        focusTimer = setInterval(() => {
+          score = Math.min(100, score + 2);
+          setAttentionScore(score);
+        }, 2000);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      clearInterval(focusTimer);
+    };
+  }, []);
+
+  // Broadcast attention score
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      if (localParticipant) {
+        const event = {
+          type: 'attention_score',
+          studentId: localParticipant.identity,
+          score: attentionScore,
+          timestamp: Date.now()
+        };
+        try {
+          await localParticipant.publishData(
+            new TextEncoder().encode(JSON.stringify(event)),
+            { topic: 'proxima_events' }
+          );
+        } catch (e) {
+          console.error("Failed to publish attention score", e);
+        }
+      }
+    }, 5000); // send every 5 seconds
+    
+    return () => clearInterval(interval);
+  }, [attentionScore, localParticipant]);
 
   useEffect(() => {
     if (localParticipant) {

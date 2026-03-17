@@ -60,12 +60,13 @@ function TeacherRoomContent() {
 
   const [studentReactions, setStudentReactions] = useState<Map<string, LiveKitEvent[]>>(new Map());
   const [raiseHandStudents, setRaiseHandStudents] = useState<Set<string>>(new Set());
+  const [attentionScores, setAttentionScores] = useState<Map<string, number>>(new Map());
 
   // Listen for LiveKit events
   useDataChannel('proxima_events', (msg: any) => {
     try {
       const text = new TextDecoder().decode(msg.data || msg.payload || msg);
-      const event: LiveKitEvent = JSON.parse(text);
+      const event: any = JSON.parse(text);
       if (event.type === 'reaction') {
         const studentId = event.studentId;
         if (!studentId) return;
@@ -87,6 +88,16 @@ function TeacherRoomContent() {
           updated.delete(studentId);
           return updated;
         });
+      } else if (event.type === 'attention_score') {
+        const studentId = event.studentId;
+        const score = event.score;
+        if (studentId && typeof score === 'number') {
+          setAttentionScores(prev => {
+            const up = new Map(prev);
+            up.set(studentId, score);
+            return up;
+          });
+        }
       }
     } catch (err) {
       console.error('Failed to parse LiveKit event:', err);
@@ -527,6 +538,32 @@ function TeacherRoomContent() {
                     </div>
                   )}
 
+                  {/* Action Overlay */}
+                  <div style={{ position: 'absolute', bottom: '8px', right: '8px', zIndex: 10 }}>
+                     <button
+                       onClick={() => {
+                         if (window.confirm(`Are you sure you want to kick ${participant.identity}?`)) {
+                           if (localParticipant) {
+                             const event = {
+                               type: 'kick',
+                               targetId: participant.identity,
+                               timestamp: Date.now()
+                             };
+                             localParticipant.publishData(new TextEncoder().encode(JSON.stringify(event)), { topic: 'proxima_events' }).catch(console.error);
+                           }
+                         }
+                       }}
+                       style={{
+                         background: '#FF3D57', border: '2px solid #000',
+                         borderRadius: '4px', padding: '4px 6px', cursor: 'pointer',
+                         color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                       }}
+                       title="Kick Student"
+                     >
+                       <Trash2 size={12} />
+                     </button>
+                  </div>
+
                   {/* Name */}
                   <div style={{ position: 'absolute', bottom: '8px', left: '8px', ...SM, fontSize: '10px', fontWeight: 700, letterSpacing: '0.03em', background: 'rgba(255,255,255,0.8)', padding: '2px 4px', borderRadius: '4px', zIndex: 10, color: '#000' }}>
                     {participant.identity}
@@ -603,6 +640,8 @@ function TeacherRoomContent() {
                 <p style={{ ...IN, fontSize: '13px', color: '#999' }}>No students in class</p>
               ) : (
                 participants.map((p) => {
+                  const score = attentionScores.get(p.identity) ?? 100;
+                  const scoreColor = score >= 70 ? '#00C851' : score >= 40 ? '#FFD600' : '#FF3D57';
                   return (
                     <div key={p.identity}>
                       <div className="flex items-center justify-between">
@@ -610,9 +649,9 @@ function TeacherRoomContent() {
                           <span style={{ ...IN, fontSize: '13px' }}>{p.identity}</span>
                           {raiseHandStudents.has(p.identity) && <Hand size={14} color="#FF6B35" />}
                         </div>
-                        <span style={{ ...SM, fontSize: '12px', fontWeight: 700, color: '#00C851' }}>100%</span>
+                        <span style={{ ...SM, fontSize: '12px', fontWeight: 700, color: scoreColor }}>{score}%</span>
                       </div>
-                      <ProgressBar pct={100} />
+                      <ProgressBar pct={score} />
                     </div>
                   );
                 })

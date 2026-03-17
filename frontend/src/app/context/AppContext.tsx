@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 
-export type UserRole = 'teacher' | 'student';
+export type UserRole = 'teacher' | 'student' | 'institution_admin';
 
 export interface User {
   name: string;
@@ -41,7 +41,7 @@ interface AppContextType {
   tokens: SessionTokens | null;
   currentRoom: Room | null;
   rooms: Room[];
-  login: (email: string, password: string) => Promise<{success: boolean, error?: string}>;
+  login: (email: string, password: string) => Promise<{success: boolean, error?: string, role?: string}>;
   register: (name: string, email: string, password: string, role: UserRole) => Promise<{success: boolean, error?: string}>;
   logout: () => void;
   createRoom: (name: string) => Promise<Room | null>;
@@ -136,7 +136,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const API_BASE = 'http://localhost:3001';
 
-  const login = async (email: string, password: string): Promise<{success: boolean, error?: string}> => {
+  const login = async (email: string, password: string): Promise<{success: boolean, error?: string, role?: string}> => {
     try {
       const res = await fetch(`${API_BASE}/auth/login`, {
         method: 'POST',
@@ -154,7 +154,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         initials: data.user.name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2),
       });
       setTokens(data.tokens);
-      return { success: true };
+      return { success: true, role: data.user.role };
     } catch (e) {
       console.error(e);
       return { success: false, error: 'Network error occurred' };

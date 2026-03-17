@@ -2140,7 +2140,7 @@ ip addr show | grep "inet " | grep -v 127.0.0.1
 ```
 
 Update both .env files replacing localhost with your IP.
-Update livekit.yaml node_ip with your IP.
+Update livekit.yaml node_ip with your IP
 Restart all services.
 Open firewall ports:
 

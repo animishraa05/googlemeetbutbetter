@@ -21,7 +21,11 @@ export default function LoginPage() {
     }
     const result = await login(email, password);
     if (result.success) {
-      navigate('/dashboard');
+      if (result.role === 'institution_admin') {
+        navigate('/admin');
+      } else {
+        navigate('/dashboard');
+      }
     } else {
       setError(result.error || 'Invalid credentials.');
     }
@@ -179,38 +183,12 @@ export default function LoginPage() {
           <p className="mt-6 text-center" style={{ ...IN, fontSize: '15px' }}>
             No account?{' '}
             <Link
-              to="/register"
+              to="/institution/register"
               style={{ color: '#7B61FF', textDecoration: 'underline', fontWeight: 700 }}
             >
-              Register
+              Register Institution
             </Link>
           </p>
-
-          <div className="mt-6 pt-6" style={{ borderTop: '2px solid #000' }}>
-            <p style={{ ...SM, fontSize: '11px', color: '#888', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '8px' }}>
-              Demo credentials
-            </p>
-            <div className="flex gap-2 flex-wrap">
-              <button
-                onClick={() => { setEmail('teacher@proxima.io'); setPassword('qwer1234'); }}
-                style={{
-                  ...SM, fontSize: '11px', background: '#FF6B35', border: '2px solid #000',
-                  borderRadius: '4px', padding: '4px 10px', cursor: 'pointer', color: '#000', fontWeight: 700,
-                }}
-              >
-                Teacher demo
-              </button>
-              <button
-                onClick={() => { setEmail('student@proxima.io'); setPassword('qwer1234'); }}
-                style={{
-                  ...SM, fontSize: '11px', background: '#7B61FF', border: '2px solid #000',
-                  borderRadius: '4px', padding: '4px 10px', cursor: 'pointer', color: '#fff', fontWeight: 700,
-                }}
-              >
-                Student demo
-              </button>
-            </div>
-          </div>
         </div>
       </div>
     </div>
