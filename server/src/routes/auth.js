@@ -14,7 +14,7 @@ const signToken = (user) =>
       institutionId: user.institutionId,
     },
     process.env.JWT_SECRET,
-    { expiresIn: "6h" },
+    { expiresIn: "7d" },
   );
 
 router.post("/register", async (req, res) => {

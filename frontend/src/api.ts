@@ -14,7 +14,8 @@ api.interceptors.request.use((config) => {
   const tokens = localStorage.getItem('proxima_tokens');
   if (tokens) {
     try {
-      const { token } = JSON.parse(tokens);
+      const parsed = JSON.parse(tokens);
+      const token = parsed.accessToken || parsed.token;
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }

@@ -26,7 +26,7 @@ export default function DashboardPage() {
   const fetchClasses = async () => {
     try {
       const res = await classAPI.getAll();
-      setClasses(res.data || []);
+      setClasses(res.data.classes || []);
     } catch (err) {
       console.error('Failed to fetch classes', err);
     } finally {

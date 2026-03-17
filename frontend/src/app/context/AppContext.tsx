@@ -153,7 +153,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         role: data.user.role,
         initials: data.user.name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2),
       });
-      setTokens(data.tokens);
+      setTokens({ accessToken: data.token, refreshToken: '' });
       return { success: true, role: data.user.role };
     } catch (e) {
       console.error(e);
@@ -178,7 +178,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         role: data.user.role,
         initials: data.user.name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2),
       });
-      setTokens(data.tokens);
+      setTokens({ accessToken: data.token, refreshToken: '' });
       return { success: true };
     } catch (e) {
       console.error(e);

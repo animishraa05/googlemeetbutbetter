@@ -46,9 +46,9 @@ export default function ClassFeedPage() {
         sessionAPI.getAll(Number(classId)).catch(() => ({ data: [] })),
         feedAPI.getFeed(Number(classId)).catch(() => ({ data: { items: [] } }))
       ]);
-      setClassData(clsRes.data);
-      setSessions(sessRes.data || []);
-      setFeed(feedRes.data?.items || feedRes.data || []);
+      setClassData(clsRes.data.class || clsRes.data);
+      setSessions(sessRes.data?.sessions || sessRes.data || []);
+      setFeed(feedRes.data?.items || []);
     } catch (err) {
       console.error(err);
     } finally {
@@ -76,7 +76,7 @@ export default function ClassFeedPage() {
       setNewPostFileName('');
       // Refresh feed
       const feedRes = await feedAPI.getFeed(Number(classId));
-      setFeed(feedRes.data?.items || feedRes.data || []);
+      setFeed(feedRes.data?.items || []);
     } catch (err) {
       alert('Failed to create post');
     } finally {
@@ -100,7 +100,7 @@ export default function ClassFeedPage() {
       try {
         await sessionAPI.create(Number(classId), { title });
         const sessRes = await sessionAPI.getAll(Number(classId));
-        setSessions(sessRes.data || []);
+        setSessions(sessRes.data?.sessions || []);
       } catch (err) {
         alert('Failed to create session');
       }

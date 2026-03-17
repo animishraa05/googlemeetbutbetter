@@ -15,19 +15,20 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
     if (!email || !password) {
       setError('Please fill in all fields.');
       return;
     }
     const result = await login(email, password);
-    if (result.success) {
-      if (result.role === 'institution_admin') {
-        navigate('/admin');
-      } else {
-        navigate('/dashboard');
-      }
-    } else {
+    if (!result.success) {
       setError(result.error || 'Invalid credentials.');
+      return;
+    }
+    if (result.role === 'institution_admin') {
+      navigate('/admin');
+    } else {
+      navigate('/dashboard');
     }
   };
 

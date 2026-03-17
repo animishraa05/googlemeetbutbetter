@@ -41,7 +41,7 @@ router.post("/register", async (req, res) => {
       institutionId: institution.id,
     },
     process.env.JWT_SECRET,
-    { expiresIn: "6h" },
+    { expiresIn: "7d" },
   );
   res.status(201).json({ institution, user: admin, token });
 });

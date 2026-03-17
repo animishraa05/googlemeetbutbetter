@@ -104,4 +104,16 @@ router.get("/classes/:classId", async (req, res) => {
   res.json({ sessions: sessionsWithAttendance });
 });
 
+router.get("/:sessionId/info", async (req, res) => {
+  try {
+    const session = await prisma.liveSession.findUnique({
+      where: { id: parseInt(req.params.sessionId) },
+    });
+    if (!session) return res.status(404).json({ error: "Session not found" });
+    res.json({ session });
+  } catch (err) {
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 module.exports = router;

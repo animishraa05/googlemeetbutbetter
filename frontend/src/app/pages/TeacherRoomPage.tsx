@@ -1,6 +1,6 @@
 
-import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router';
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate, useParams } from 'react-router';
 import { useApp } from '../context/AppContext';
 import { ProximaNav } from '../components/ProximaNav';
 import {
@@ -718,17 +718,59 @@ function TeacherRoomContent() {
 }
 
 export default function TeacherRoomPage() {
-  const { currentRoom, user } = useApp();
+  const { user, tokens } = useApp();
   const navigate = useNavigate();
+  const { roomId } = useParams<{ roomId: string }>();
+  const [sessionRoom, setSessionRoom] = React.useState<any>(null);
 
-  if (!currentRoom || !user) {
-    if (typeof window !== 'undefined') {
-      setTimeout(() => navigate('/dashboard'), 0);
+  useEffect(() => {
+    if (!user) {
+      navigate('/login');
+      return;
     }
-    return null;
-  }
+    if (!roomId) return;
 
-  const { token, serverUrl, error } = useLiveKitToken(currentRoom.id, user.name, user.role);
+    // Try to load session info from the API, with fallback to session ID
+    fetch(`http://localhost:3001/sessions/${roomId}/info`, {
+      headers: { 'Authorization': `Bearer ${tokens?.accessToken}` }
+    })
+      .then(r => r.json())
+      .then(data => {
+        const livekitRoomId = data.session?.livekitRoom || `session_${roomId}`;
+        setSessionRoom({
+          id: livekitRoomId,
+          name: data.session?.title || 'Classroom',
+          code: livekitRoomId,
+          teacherName: user?.name || 'Teacher',
+        });
+      })
+      .catch(() => {
+        setSessionRoom({
+          id: `session_${roomId}`,
+          name: 'Classroom',
+          code: `session_${roomId}`,
+          teacherName: user?.name || 'Teacher',
+        });
+      });
+  }, [roomId, user, tokens]);
+
+  // ✅ Always call hooks unconditionally — hook internally guards empty roomName
+  const { token, serverUrl, error } = useLiveKitToken(
+    sessionRoom?.id || '',
+    user?.name || '',
+    (user?.role as 'teacher' | 'student') || 'teacher',
+    tokens?.accessToken
+  );
+
+  if (!user) return null;
+
+  if (!sessionRoom) {
+    return (
+      <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', ...SG }}>
+        Setting up your classroom...
+      </div>
+    );
+  }
 
   if (error) {
     return <div style={{ padding: '20px' }}>Error connecting to classroom: {error}</div>;
