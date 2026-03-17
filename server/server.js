@@ -49,6 +49,11 @@ app.use(
   require("./src/middleware/authenticate"),
   require("./src/routes/upload"),
 );
+app.use(
+  "/attendance",
+  require("./src/middleware/authenticate"),
+  require("./src/routes/attendance"),
+);
 
 io.on("connection", (socket) => {
   require("./src/socket")(io, socket);

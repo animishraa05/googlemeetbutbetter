@@ -1,4 +1,5 @@
 const store = require("../store");
+const prisma = require("../db");
 
 /**
  * All Socket.io event handlers.
@@ -38,6 +39,84 @@ module.exports = function registerSocketHandlers(io, socket) {
 
     io.to(roomId).emit("user_joined", { name, role });
     console.log(`[socket] ${name} (${role}) joined ${roomId}`);
+  });
+
+  // ── JOIN SESSION (with attendance tracking) ────────
+
+  socket.on("join_session", async ({ sessionId, studentId } = {}) => {
+    if (!validate({ sessionId, studentId }, ["sessionId", "studentId"])) return;
+
+    try {
+      // Mark attendance in database
+      const session = await prisma.liveSession.findUnique({
+        where: { id: parseInt(sessionId) },
+        include: { class: { include: { enrollments: true } } },
+      });
+
+      if (session && session.status === "live") {
+        const isEnrolled = session.class.enrollments.some(
+          (e) => e.studentId === parseInt(studentId)
+        );
+
+        if (isEnrolled) {
+          await prisma.attendance.upsert({
+            where: {
+              sessionId_studentId: {
+                sessionId: parseInt(sessionId),
+                studentId: parseInt(studentId),
+              },
+            },
+            update: { joinedAt: new Date(), leftAt: null, duration: null },
+            create: {
+              sessionId: parseInt(sessionId),
+              studentId: parseInt(studentId),
+              joinedAt: new Date(),
+            },
+          });
+          socket.data.sessionId = sessionId;
+          socket.data.studentId = studentId;
+          console.log(`[attendance] Student ${studentId} marked present for session ${sessionId}`);
+        }
+      }
+    } catch (error) {
+      console.error("[socket] Error marking attendance:", error.message);
+    }
+  });
+
+  // ── LEAVE SESSION (update attendance duration) ─────
+
+  socket.on("leave_session", async ({ sessionId, studentId } = {}) => {
+    if (!validate({ sessionId, studentId }, ["sessionId", "studentId"])) return;
+
+    try {
+      const attendance = await prisma.attendance.findUnique({
+        where: {
+          sessionId_studentId: {
+            sessionId: parseInt(sessionId),
+            studentId: parseInt(studentId),
+          },
+        },
+      });
+
+      if (attendance) {
+        const leftAt = new Date();
+        const duration = Math.floor((leftAt.getTime() - attendance.joinedAt.getTime()) / 1000);
+
+        await prisma.attendance.update({
+          where: {
+            sessionId_studentId: {
+              sessionId: parseInt(sessionId),
+              studentId: parseInt(studentId),
+            },
+          },
+          data: { leftAt, duration },
+        });
+
+        console.log(`[attendance] Student ${studentId} left session ${sessionId}, duration: ${duration}s`);
+      }
+    } catch (error) {
+      console.error("[socket] Error updating attendance:", error.message);
+    }
   });
 
   // ── REACTION ───────────────────────────────────────
@@ -115,7 +194,34 @@ module.exports = function registerSocketHandlers(io, socket) {
   // ── DISCONNECT ─────────────────────────────────────
 
   socket.on("disconnect", (reason) => {
-    const { roomId, name, role } = socket.data || {};
+    const { roomId, name, role, sessionId, studentId } = socket.data || {};
+    
+    // Auto-mark attendance left when student disconnects from session
+    if (sessionId && studentId && role === "student") {
+      prisma.attendance.findUnique({
+        where: {
+          sessionId_studentId: {
+            sessionId: parseInt(sessionId),
+            studentId: parseInt(studentId),
+          },
+        },
+      }).then((attendance) => {
+        if (attendance && !attendance.leftAt) {
+          const leftAt = new Date();
+          const duration = Math.floor((leftAt.getTime() - attendance.joinedAt.getTime()) / 1000);
+          prisma.attendance.update({
+            where: {
+              sessionId_studentId: {
+                sessionId: parseInt(sessionId),
+                studentId: parseInt(studentId),
+              },
+            },
+            data: { leftAt, duration },
+          }).catch(() => {});
+        }
+      }).catch(() => {});
+    }
+    
     if (!roomId || !name) return;
 
     if (role === "student") {

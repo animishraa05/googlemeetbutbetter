@@ -34,6 +34,7 @@ model User {
   enrollments   Enrollment[]
   feedItems     FeedItem[]
   sessions      LiveSession[]
+  attendance    Attendance[]
 
   @@unique([institutionId, email])
   @@unique([institutionId, username])
@@ -97,4 +98,19 @@ model LiveSession {
 
   class        Class     @relation(fields: [classId], references: [id])
   teacher      User      @relation(fields: [teacherId], references: [id])
+  attendance   Attendance[]
+}
+
+model Attendance {
+  id        Int       @id @default(autoincrement())
+  sessionId Int
+  studentId Int
+  joinedAt  DateTime  @default(now())
+  leftAt    DateTime?
+  duration  Int?
+
+  session   LiveSession @relation(fields: [sessionId], references: [id])
+  student   User        @relation(fields: [studentId], references: [id])
+
+  @@unique([sessionId, studentId])
 }

@@ -357,7 +357,137 @@ curl -X GET http://localhost:3001/rooms/list
 
 ---
 
-## 11. Socket.IO Testing
+## 11. Attendance Tracking
+
+### Mark Attendance (Student Joins Session)
+
+```bash
+curl -X POST http://localhost:3001/attendance/$SESSION_ID/mark \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $STUDENT_TOKEN" \
+  -d '{
+    "studentId": 5
+  }'
+```
+
+**Expected Response:**
+```json
+{
+  "attendance": {
+    "id": 1,
+    "sessionId": 1,
+    "studentId": 5,
+    "joinedAt": "2026-03-17T10:00:00.000Z",
+    "leftAt": null,
+    "duration": null
+  },
+  "message": "Attendance marked"
+}
+```
+
+### Mark Student Left Session
+
+```bash
+curl -X POST http://localhost:3001/attendance/$SESSION_ID/leave \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $STUDENT_TOKEN" \
+  -d '{
+    "studentId": 5
+  }'
+```
+
+**Expected Response:**
+```json
+{
+  "attendance": {
+    "id": 1,
+    "sessionId": 1,
+    "studentId": 5,
+    "joinedAt": "2026-03-17T10:00:00.000Z",
+    "leftAt": "2026-03-17T10:45:00.000Z",
+    "duration": 2700
+  },
+  "message": "Left at recorded",
+  "duration": 2700
+}
+```
+
+### Get Attendance Report for Session
+
+```bash
+curl -X GET http://localhost:3001/attendance/$SESSION_ID/report \
+  -H "Authorization: Bearer $TEACHER_TOKEN"
+```
+
+**Expected Response:**
+```json
+{
+  "session": {
+    "id": 1,
+    "title": "Live Lecture: Quadratic Equations",
+    "status": "live",
+    "startedAt": "2026-03-17T10:00:00.000Z",
+    "endedAt": null
+  },
+  "summary": {
+    "totalEnrolled": 25,
+    "totalPresent": 20,
+    "totalAbsent": 5,
+    "attendanceRate": 80
+  },
+  "students": [
+    {
+      "student": {
+        "id": 5,
+        "name": "Jane Student",
+        "email": "jane@student.proxima",
+        "username": "jane.student"
+      },
+      "present": true,
+      "joinedAt": "2026-03-17T10:00:00.000Z",
+      "leftAt": "2026-03-17T10:45:00.000Z",
+      "duration": 2700
+    },
+    {
+      "student": { ... },
+      "present": false,
+      "joinedAt": null,
+      "leftAt": null,
+      "duration": null
+    }
+  ]
+}
+```
+
+### Get Attendance Summary for All Sessions in a Class
+
+```bash
+curl -X GET http://localhost:3001/attendance/classes/$CLASS_ID/sessions \
+  -H "Authorization: Bearer $TEACHER_TOKEN"
+```
+
+**Expected Response:**
+```json
+{
+  "sessions": [
+    {
+      "session": {
+        "id": 1,
+        "title": "Live Lecture: Quadratic Equations",
+        "status": "ended",
+        "startedAt": "2026-03-17T10:00:00.000Z",
+        "endedAt": "2026-03-17T10:50:00.000Z"
+      },
+      "totalPresent": 20,
+      "averageDuration": 2500
+    }
+  ]
+}
+```
+
+---
+
+## 12. Socket.IO Testing
 
 **Connect to Socket.IO server:**
 
@@ -385,7 +515,7 @@ socket.on('user_joined', (data) => console.log('User joined:', data));
 
 ---
 
-## 12. Database Inspection
+## 13. Database Inspection
 
 **Open Prisma Studio:**
 ```bash
@@ -460,6 +590,12 @@ TOKEN_RESP=$(curl -s -X GET "$BASE_URL/token?room=test&name=Teacher&role=teacher
   -H "Authorization: Bearer $TEACHER_TOKEN")
 echo $TOKEN_RESP | jq .
 
+# 7. Attendance Report
+echo -e "\n7. Getting attendance report..."
+ATTEND_RESP=$(curl -s -X GET "$BASE_URL/attendance/$SESSION_ID/report" \
+  -H "Authorization: Bearer $TEACHER_TOKEN")
+echo $ATTEND_RESP | jq .
+
 echo -e "\n=== All tests completed ==="
 ```
 
@@ -513,7 +649,7 @@ server/
 
 ---
 
-## Troubleshooting
+## 15. Troubleshooting
 
 **Database connection error:**
 ```bash

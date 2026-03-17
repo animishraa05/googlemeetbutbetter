@@ -86,9 +86,22 @@ router.post("/:sessionId/end", async (req, res) => {
 router.get("/classes/:classId", async (req, res) => {
   const sessions = await prisma.liveSession.findMany({
     where: { classId: parseInt(req.params.classId) },
+    include: {
+      attendance: {
+        select: {
+          studentId: true,
+        },
+      },
+    },
     orderBy: { createdAt: "desc" },
   });
-  res.json({ sessions });
+
+  const sessionsWithAttendance = sessions.map((session) => ({
+    ...session,
+    attendanceCount: session.attendance.length,
+  }));
+
+  res.json({ sessions: sessionsWithAttendance });
 });
 
 module.exports = router;

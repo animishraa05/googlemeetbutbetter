@@ -1,0 +1,411 @@
+# Proxima Project Rules for Antigravity
+
+## ⚡ CRITICAL: Agent Workflow
+
+**BEFORE writing ANY code:**
+
+1. **READ** `.agents/workflow.md` - This defines our entire process
+2. **FOLLOW** the design-first workflow:
+   ```
+   Design Agent → User Approval → Frontend Agent → Done
+   ```
+3. **NEVER** skip the design phase
+4. **ALWAYS** wait for user approval before implementing
+
+---
+
+## 🎨 Design System: Neobrutalism
+
+**This is MANDATORY for all UI. No exceptions.**
+
+### Core Principles
+- **Bold Borders:** 3px minimum, solid black (#1A1A1A)
+- **Vibrant Colors:** High saturation, high contrast
+- **Hard Shadows:** `4px 4px 0px #000` (NO blur)
+- **Sharp Corners:** 0-4px border-radius maximum
+- **Heavy Typography:** 700-900 font-weight for headings
+
+### Color Palette
+```css
+--primary: #FF6B6B;      /* Coral red - main actions */
+--secondary: #4ECDC4;    /* Teal - secondary actions */
+--accent: #FFE66D;       /* Yellow - highlights */
+--black: #1A1A1A;        /* Text, borders */
+--white: #FFFFFF;        /* Backgrounds */
+--gray: #F7F7F7;         /* Secondary backgrounds */
+```
+
+### Typography
+```css
+--font: 'Inter', sans-serif;
+--heading-weight: 700-900;
+--body-weight: 400-500;
+```
+
+### Shadows (Hard, No Blur)
+```css
+--shadow-sm: 2px 2px 0px #000;
+--shadow-md: 4px 4px 0px #000;
+--shadow-lg: 6px 6px 0px #000;
+```
+
+**Reference:** `.agents/design.agent.md` for complete specifications
+
+---
+
+## 📁 File Structure
+
+```
+.agents/
+├── workflow.md              ← START HERE for new features
+├── design.agent.md          ← Design specifications
+├── frontend.agent.md        ← Implementation rules
+├── AGENTS.md                ← System overview
+├── QUICK_REFERENCE.md       ← Cheat sheet
+├── HOW_TO_USE.md            ← Usage guide
+└── designs/
+    ├── DESIGN_SPEC.md       ← Current active design
+    └── archive/
+
+frontend/
+├── src/
+│   ├── api.ts               ← API client (USE THIS)
+│   ├── socket.ts            ← Socket client (USE THIS)
+│   ├── app/
+│   │   ├── pages/           ← Page components
+│   │   ├── components/      ← Reusable components
+│   │   └── context/         ← React context
+│   └── types/               ← TypeScript types
+
+server/
+├── src/routes/              ← All API endpoints
+└── prisma/schema.prisma     ← Database schema
+```
+
+---
+
+## 🚀 How to Use This Agent System
+
+### Starting a New Feature
+
+**User says:** "Create the login page"
+
+**You (Antigravity) respond:**
+
+1. **Acknowledge and start Design Agent:**
+   ```
+   🎨 Starting Design Agent phase...
+   
+   Reading .agents/design.agent.md...
+   Creating neobrutalism design for login page...
+   ```
+
+2. **Create design specification:**
+   - ASCII wireframe
+   - Color palette (hex codes)
+   - Typography specs
+   - All components needed
+   - All states (hover, active, disabled, loading, error)
+   - Responsive behavior
+   
+3. **Save to:** `.agents/designs/login-page-design.md`
+
+4. **Present to user:**
+   ```
+   📄 Created: .agents/designs/login-page-design.md
+   
+   Key features:
+   - [List main design elements]
+   
+   Please review. Reply "approved" to proceed to implementation.
+   ```
+
+5. **WAIT for user approval** ⛔
+
+6. **After approval, start Frontend Agent:**
+   ```
+   ✅ Design approved!
+   💻 Starting Frontend Agent phase...
+   
+   Reading DESIGN_SPEC.md...
+   Implementing components...
+   ```
+
+7. **Implement following `.agents/frontend.agent.md`**
+
+---
+
+## 💻 Implementation Rules
+
+### TypeScript
+- ✅ STRICT mode - NO `any` types
+- ✅ Define interfaces for all props
+- ✅ Use proper type imports
+
+### Backend Integration
+- ✅ ALWAYS use `frontend/src/api.ts` functions
+- ✅ NEVER create new fetch calls
+- ✅ Handle loading, error, success states
+- ✅ Test with backend running
+
+### Socket.IO
+- ✅ Use `frontend/src/socket.ts` for real-time
+- ✅ Clean up listeners on unmount
+- ✅ Handle connection states
+
+### Component Structure
+```tsx
+// 1. Imports
+import { API_FUNCTION } from '@/api';
+
+// 2. Types
+interface ComponentProps { ... }
+
+// 3. Component
+export default function Component(props: ComponentProps) {
+  // State
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  
+  // Effects
+  useEffect(() => { ... }, []);
+  
+  // Handlers
+  const handleSubmit = async () => { ... };
+  
+  // Render states
+  if (loading) return <LoadingSkeleton />;
+  if (error) return <ErrorBanner message={error} />;
+  if (!data) return <EmptyState />;
+  
+  return <MainContent />;
+}
+```
+
+### Neobrutalism Tailwind Classes
+```tsx
+// Primary Button
+className="
+  bg-neo-primary text-neo-black font-bold
+  border-3 border-neo-black
+  px-6 py-3
+  shadow-neo-md
+  hover:-translate-y-0.5 hover:shadow-neo-lg
+  transition-all duration-150
+"
+
+// Input Field
+className="
+  w-full border-3 border-neo-black
+  bg-neo-white px-4 py-3
+  focus:border-neo-primary focus:outline-none
+"
+
+// Card
+className="
+  border-3 border-neo-black
+  bg-neo-white p-6
+  shadow-neo-md
+"
+```
+
+---
+
+## ✅ Quality Checklist
+
+### Before Marking Design Complete
+- [ ] Neobrutalism style applied (bold borders, vibrant colors, hard shadows)
+- [ ] ASCII wireframe included
+- [ ] All colors specified with hex codes
+- [ ] All typography defined (font, size, weight)
+- [ ] All components listed
+- [ ] All states described (hover, active, disabled, loading, error, empty)
+- [ ] Responsive behavior specified (desktop/tablet/mobile)
+- [ ] Saved to `.agents/designs/[name]-design.md`
+
+### Before Marking Implementation Complete
+- [ ] Design followed exactly (95%+ fidelity)
+- [ ] Zero TypeScript errors
+- [ ] No `any` types
+- [ ] All API endpoints integrated
+- [ ] All error states handled
+- [ ] Loading states implemented
+- [ ] Success feedback added (toasts, messages)
+- [ ] Socket.IO integrated (if real-time needed)
+- [ ] Mobile responsive
+- [ ] Tested with backend running
+- [ ] No console errors
+
+---
+
+## 📞 When to Ask User
+
+### Design Phase - Ask When:
+- Uncertain about feature requirements
+- Need clarification on user flow
+- Want to confirm color preferences
+- Design scope is ambiguous
+
+### Implementation Phase - Ask When:
+- Design spec is unclear
+- API endpoint missing (offer to create stub)
+- Backend integration fails (500 errors)
+- Design has accessibility issues (contrast)
+- Scope is ambiguous
+
+### NEVER:
+- ❌ Guess the design intent
+- ❌ Change design without approval
+- ❌ Skip error handling
+- ❌ Leave `any` types
+- ❌ Commit broken code
+- ❌ Start coding without DESIGN_SPEC.md
+
+---
+
+## 🔧 Quick Reference
+
+### API Usage Pattern
+```typescript
+import { authAPI, classAPI, sessionAPI } from '@/api';
+
+// Login
+const response = await authAPI.login({ email, password });
+
+// Create Class
+const response = await classAPI.create({ name, subject, description });
+
+// Start Session
+const response = await sessionAPI.start(sessionId);
+```
+
+### Socket Usage Pattern
+```typescript
+import { socketEvents, socketListeners } from '@/socket';
+
+// Emit
+socketEvents.joinRoom({ roomId, name, role });
+
+// Listen
+socketListeners.onUserJoined((data) => { ... });
+```
+
+### State Management Pattern
+```typescript
+const [state, setState] = useState({
+  loading: false,
+  error: null as string | null,
+  data: null as DataType | null,
+});
+```
+
+---
+
+## 🚫 Common Mistakes to Avoid
+
+| Mistake | Correction |
+|---------|------------|
+| Starting code without design | STOP → Create DESIGN_SPEC.md first |
+| Soft shadows `shadow-lg` | Use hard shadows `shadow-neo-md` |
+| Rounded corners `rounded-lg` | Use `rounded-none` or `rounded-sm` |
+| Thin borders `border` | Use `border-3` or `border-4` |
+| Muted colors `text-gray-500` | Use `text-neo-black` |
+| `any` types in TypeScript | Define proper interface |
+| No error handling | Wrap API calls in try/catch |
+| No loading state | Add skeleton loaders |
+| Untested with backend | Always test integration |
+
+---
+
+## 📚 Reference Files
+
+**Always have these open:**
+1. `.agents/workflow.md` - Process overview
+2. `.agents/design.agent.md` - Design specifications
+3. `.agents/frontend.agent.md` - Implementation rules
+4. `.agents/QUICK_REFERENCE.md` - Quick cheat sheet
+5. `FRONTEND_IMPLEMENTATION_PLAN.md` - Page specifications
+6. `frontend/src/api.ts` - API functions
+7. `test.md` - Backend API testing guide
+
+---
+
+## 🎯 Success Criteria
+
+**A task is complete when:**
+1. ✅ Design approved by user
+2. ✅ Implementation matches design 95%+
+3. ✅ All API endpoints working
+4. ✅ Zero TypeScript errors
+5. ✅ All states handled (loading, error, success, empty)
+6. ✅ Mobile responsive
+7. ✅ Tested with backend running
+8. ✅ User can complete the full flow
+
+---
+
+## 💬 Example Interaction
+
+```
+User: "Create the login page"
+
+You:
+🎨 Starting Design Agent phase...
+
+Reading .agents/design.agent.md...
+Creating neobrutalism design for login page...
+
+[Creates design with ASCII wireframe, colors, typography, states]
+
+📄 Created: .agents/designs/login-page-design.md
+
+Design includes:
+- Email + password form fields with bold borders
+- Primary login button (#FF6B6B) with hard shadow
+- Links to Register and Join Class pages
+- Error banner for failed logins
+- Loading state with spinner
+- Responsive mobile-first layout
+
+Please review the design specification.
+Reply "approved" to proceed to implementation.
+
+---
+
+User: "approved"
+
+You:
+✅ Design approved!
+💻 Starting Frontend Agent phase...
+
+Reading DESIGN_SPEC.md...
+Checking existing components...
+Verifying API endpoints...
+
+Implementing LoginPage.tsx...
+✅ Applied neobrutalism styles
+✅ Integrated authAPI.login()
+✅ Added loading/error states
+✅ Made responsive
+
+📄 Created: frontend/src/app/pages/LoginPage.tsx
+
+Test at: http://localhost:5173/
+Backend required: http://localhost:3001
+
+✅ Implementation complete! Ready for your review.
+```
+
+---
+
+## 🚀 Remember
+
+> **Design FIRST → Approval → Code SECOND**
+> 
+> **Neobrutalism ALWAYS**
+> 
+> **Backend Integration REQUIRED**
+> 
+> **When in doubt, ASK**
+
+Follow these rules and you'll build amazing, consistent UI every time! 🎯
